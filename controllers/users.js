@@ -2,7 +2,7 @@ const http2 = require('http2').constants;
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const { getJwtSecret } = require('../config');
+const { JWT_SECRET } = require('../config');
 const NotFoundError = require('../handles/NotFoundError');
 const ConflictError = require('../handles/ConflictError');
 const UnauthorizedError = require('../handles/UnauthorizedError');
@@ -59,10 +59,10 @@ const updateUser = (req, res, next) => {
 };
 
 const login = (req, res, next) => {
-  const { name, email, password } = req.body;
-  return User.findUserByCredentials(name, email, password)
+  const { email, password } = req.body;
+  return User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, getJwtSecret, { expiresIn: '7d' });
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
       res.send({ token });
     })
     .catch((error) => {
