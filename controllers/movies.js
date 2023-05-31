@@ -12,10 +12,35 @@ const getMovies = (req, res, next) => {
 };
 
 const createMovies = (req, res, next) => {
-  const { name, link } = req.body;
-  const id = req.user._id;
-  Movie.create({ name, link, owner: id })
-    .then((movies) => movies.populate('owner'))
+  const {
+    country,
+    director,
+    duration,
+    year,
+    description,
+    image,
+    trailer,
+    nameRU,
+    nameEN,
+    thumbnail,
+  } = req.body;
+  const userId = req.user._id;
+  const movieId = req.user._id;
+  Movie.create({
+    country,
+    director,
+    duration,
+    year,
+    description,
+    image,
+    trailer,
+    nameRU,
+    nameEN,
+    thumbnail,
+    owner: userId,
+    movieId,
+  })
+    // .then((movies) => movies.populate('owner', 'movieId')) // ????
     .then((movies) => {
       res.status(http2.HTTP_STATUS_CREATED).send(movies);
     })
@@ -23,48 +48,20 @@ const createMovies = (req, res, next) => {
 };
 
 const deleteMovies = (req, res, next) => {
-  Movie.findById(req.params.cardId)
-    .orFail()
+  Movie.findById(req.params.movieId)
+    .orFail() // ОШибку добавить можно наверно
     .then((movies) => {
       const owner = movies.owner.toString();
       if (req.user._id === owner) {
         movies.deleteOne()
-          .then(() => res.send({ message: 'Карточка удалена' }))
+          .then(() => res.send({ message: 'Ролик удалён' }))
           .catch(next);
       } else {
-        next(new ForbiddenError('Нельзя удалять карточки других пользователей'));
+        next(new ForbiddenError('Нельзя удалять ролики других пользователей'));
       }
     })
     .catch(next);
 };
-
-// const setLike = (req, res, next) => {
-//   cardSchema.findByIdAndUpdate(
-//     req.params.cardId,
-//     { $addToSet: { likes: req.user._id } },
-//     { new: true },
-//   )
-//     .orFail()
-//     .populate(['owner', 'likes'])
-//     .then((card) => {
-//       res.status(http2.HTTP_STATUS_OK).send(card);
-//     })
-//     .catch(next);
-// };
-
-// const deleteLike = (req, res, next) => {
-//   cardSchema.findByIdAndUpdate(
-//     req.params.cardId,
-//     { $pull: { likes: req.user._id } },
-//     { new: true },
-//   )
-//     .orFail()
-//     .populate(['owner', 'likes'])
-//     .then((card) => {
-//       res.status(http2.HTTP_STATUS_OK).send(card);
-//     })
-//     .catch(next);
-// };
 
 module.exports = {
   getMovies,
