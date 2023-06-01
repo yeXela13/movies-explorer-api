@@ -26,20 +26,20 @@ const userSchema = new mongoose.Schema({
   },
 }, { toJSON: { useProjection: true }, toObject: { useProjection: true } });
 
-userSchema.statics.findUserByCredentials = function (email, password) {
-  return this.findOne({ email }).select('+password')
-    .then((user) => {
-      if (!user) {
-        throw new UnauthorizedError('Неправильная почта или пароль');
-      }
-      return bcrypt.compare(password, user.password)
-        .then((matched) => {
-          if (!matched) {
-            throw new UnauthorizedError('Неправильная почта или пароль');
-          }
-          return user;
-        });
-    });
+userSchema.statics.findUserByCredentials = async function (email, password) {
+  try {
+    const user = await this.findOne({ email }).select('+password');
+    if (!user) {
+      throw new UnauthorizedError('Неправильная почта или пароль');
+    }
+    const matched = await bcrypt.compare(password, user.password);
+    if (!matched) {
+      throw new UnauthorizedError('Неправильная почта или пароль');
+    }
+    return user;
+  } catch (error) {
+    throw new UnauthorizedError('Неправильная почта или пароль');
+  }
 };
 
 module.exports = mongoose.model('user', userSchema);
